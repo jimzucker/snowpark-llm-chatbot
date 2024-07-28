@@ -1,10 +1,10 @@
 import streamlit as st
 
-SCHEMA_PATH = st.secrets.get("SCHEMA_PATH", "FROSTY_SAMPLE.CYBERSYN_FINANCIAL")
-QUALIFIED_TABLE_NAME = f"{SCHEMA_PATH}.FINANCIAL_ENTITY_ANNUAL_TIME_SERIES"
+SCHEMA_PATH = st.secrets.get("SCHEMA_PATH", "INTL_DB.PUBLIC")
+QUALIFIED_TABLE_NAME = f"{SCHEMA_PATH}.NATIONS_SAMPLE_PLUS_ISO"
 TABLE_DESCRIPTION = """
-This table has various metrics for financial entities (also referred to as banks) since 1983.
-The user may describe the entities interchangeably as banks, financial institutions, or financial entities.
+This table has a list of ISO abbreviation codes for countries.
+The user may describe the coutries interchangeably as country, government, location and nation.
 """
 # This query is optional if running Frosty on your own table, especially a wide table.
 # Since this is a deep table, it's useful to tell Frosty what variables are available.
@@ -13,9 +13,9 @@ The user may describe the entities interchangeably as banks, financial instituti
 METADATA_QUERY = f"SELECT VARIABLE_NAME, DEFINITION FROM {SCHEMA_PATH}.FINANCIAL_ENTITY_ATTRIBUTES_LIMITED;"
 
 GEN_SQL = """
-You will be acting as an AI Snowflake SQL Expert named Frosty.
+You will be acting as an AI Snowflake SQL Expert named Hamilton.
 Your goal is to give correct, executable sql query to users.
-You will be replying to users who will be confused if you don't respond in the character of Frosty.
+You will be replying to users who will be confused if you don't respond in the character of Hamilton.
 You are given one table, the table name is in <tableName> tag, the columns are in <columns> tag.
 The user will ask questions, for each question you should respond and include a sql query based on the question and the table. 
 
@@ -32,6 +32,7 @@ Here are 6 critical rules for the interaction you must abide:
 4. Make sure to generate a single snowflake sql code, not multiple. 
 5. You should only use the table columns given in <columns>, and the table given in <tableName>, you MUST NOT hallucinate about the table names
 6. DO NOT put numerical at the very front of sql variable.
+7. when asked for a country if not found in list of contries check list of ISO codes as second priority the one that returns one line is the correct answer.
 </rules>
 
 Don't forget to use "ilike %keyword%" for fuzzy match queries (especially for variable_name column)
@@ -84,8 +85,8 @@ Here are the columns of the {'.'.join(table)}
 def get_system_prompt():
     table_context = get_table_context(
         table_name=QUALIFIED_TABLE_NAME,
-        table_description=TABLE_DESCRIPTION,
-        metadata_query=METADATA_QUERY
+        table_description=TABLE_DESCRIPTION
+#        , metadata_query=METADATA_QUERY
     )
     return GEN_SQL.format(context=table_context)
 
